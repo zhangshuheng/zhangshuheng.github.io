@@ -1,0 +1,24 @@
+<html>
+<head>
+<title>spring mvc array param</title>
+</head>
+<body>
+<a href='http://stackoverflow.com/questions/16355168/spring-mvc-requestparam-as-map-get-url-array-parameters-not-working'
+target='_blank'>
+spring mvc array param
+</a>
+<pre>
+When you request a Map annotated with @RequestParam 
+Spring creates a map containing all request parameter name/value pairs. 
+If there are two pairs with the same name, 
+then only one can be in the map. 
+So it's essentially a Map<String, String>
+
+You can access all parameters through a MultiValueMap:
+
+public String processGetRequest(@RequestParam MultiValueMap parameters) {
+This map is essentially a Map<String, List<String>>. 
+So parameters with the same name would be in the same list.
+</pre>
+</body>
+</html>
