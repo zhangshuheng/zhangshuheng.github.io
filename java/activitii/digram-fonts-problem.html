@@ -1,0 +1,28 @@
+<html>
+<head>
+<title>activitii digram fonts problem</title>
+</head>
+<body>
+activitii流程图显示中文乱码的解决方案(centos服务器):
+<pre>
+activitii 图形显示中文为方框，需要在系统中添加中文字体，添加步骤:<br/>
+   1、用fontconfig来安装字体库<br/>
+        yum -y install fontconfig<br/>
+    2、创建 /usr/share/fonts/chinese目录<br/>
+    3、复制window中的字体到上面创建的目录<br/>
+        c:\windows\fonts\simsun.ttc<br/>
+    4、修改chinese目录的权限<br/>
+    5、修改字体配置文件<br/>
+        vi /etc/fonts/fonts.conf<br/>
+        
+        <img src='img/activitii_01.jpg'/><br/>
+    6、刷新内存中的字体缓存，这样就不用reboot重启了<br/>
+            fc-cache<br/>
+    7、通过fc-list看一下字体列表<br/>
+    <img src='img/activitii_02.jpg'/>
+
+</pre>
+</body>
+</html>
+
+
