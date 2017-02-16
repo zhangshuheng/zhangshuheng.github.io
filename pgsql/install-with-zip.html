@@ -1,0 +1,31 @@
+<html>
+<head>
+<title>install postgresql9.6 </title>
+</head>
+<body>
+<pre>
+wget https://get.enterprisedb.com/postgresql/postgresql-9.6.1-1-linux-x64-binaries.tar.gz
+<br/>
+解压缩:<br/>
+tar zxf postgresql-9.6.1-1-linux-x64-binaries.tar.gz
+<br/>
+创建系统用户<br/>
+useradd postgres<br/>
+修改目录权限<br/>
+chown -R postgres ./pgsql
+切换用户<br/>
+su postgres
+<br/>
+初始化数据库，-D是指定数据存贮目录<br/>
+bin/initdb -D data<br/>
+
+启动<br/>
+bin/pg_ctl -D data/ -l logfile start<br/>
+登陆<br/>
+bin/psql -d postgres<br/>
+</pre>
+
+
+</body>
+</html>
+
