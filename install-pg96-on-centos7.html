@@ -1,0 +1,24 @@
+<html>
+<head>
+<title>install postgresql9.6 on centos7</title>
+</head>
+<body>
+<pre>
+yum install postgresql96-server<br/>
+yum install postgresql96-contrib<br/>
+bin/initdb -D /opt/postgresql96/data/<br/><br/>
+#手动启动<br/>
+bin/pg_ctl -D /opt/postgresql96/data/ -l logfile start<br/>
+<br/>
+#修改/usr/lib/systemd/system/postgresql-9.6.service<br/>
+# Location of database directory<br/>
+Environment=PGDATA=/opt/postgresql96/data/<br/>
+<br/>
+
+#加入系统自启动<br/>
+ systemctl enable postgresql-9.6.service<br/>
+</pre>
+
+
+</body>
+</html>
