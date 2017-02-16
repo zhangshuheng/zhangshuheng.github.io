@@ -1,0 +1,25 @@
+sudo apt-get -y  update  
+<html>
+<head>
+<title>ubuntu update and clean</title>
+</head>
+<body>
+ubuntu系统软件更新及移除不需要的软件
+<pre>
+sudo apt-get -y dist-upgrade<br/>
+sudo apt-get -y upgrade <br/>
+sudo apt-get -y autoclean <br/>
+sudo apt-get -y clean <br/>
+sudo apt-get -y autoremove <br/>
+sudo find /var/log  |grep gz|xargs sudo rm -f<br/>
+echo "dpkg --purge `dpkg --get-selections | grep deinstall | cut -f1`"<br/>
+echo "dpkg --get-selections|grep linux"<br/>
+echo "uname -a"<br/>
+echo "sudo apt-get remove linux-image-2.6.27-2-generic"<br/>
+</pre>
+</body>
+</html>
+
+
+
+
