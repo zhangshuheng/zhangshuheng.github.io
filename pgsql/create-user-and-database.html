@@ -1,0 +1,24 @@
+<html>
+<head>
+<title>create user and database</title>
+</head>
+<body>
+<pre>
+CREATE USER username WITH PASSWORD 'password';<br/>
+CREATE DATABASE dbname;<br/>
+GRANT ALL PRIVILEGES ON DATABASE dbname to username;<br/><br/>
+#修改用户密码<br/>
+ alter user username with password 'foobar';<br/>
+<br/>
+#修改/usr/lib/systemd/system/postgresql-9.6.service<br/>
+# Location of database directory<br/>
+Environment=PGDATA=/opt/postgresql96/data/<br/>
+<br/>
+
+#加入系统自启动<br/>
+ systemctl enable postgresql-9.6.service<br/>
+</pre>
+
+
+</body>
+</html>
