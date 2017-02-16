@@ -1,0 +1,29 @@
+<html>
+<head>
+<title>openvpn commands</title>
+</head>
+<body>
+<pre>
+1、centos查看路由表:  ip route show|column -t<br/>
+2、windows查看路由表: route print<br/>
+3、centos添加路由:   ip route add 10.9.0.0/16 via 10.8.0.1 dev tun0<br/>
+4、openvpn启动重启命令:<br/>
+        systemctl stop openvpn@server.service<br/>
+        systemctl start openvpn@server.service<br/>
+5、删除路由:  ip route del 10.15.150.0/24<br/>
+6、创建客户端key:./build-key client<br/>
+7、启动linux客户端： sudo openvpn --config client.ovpn<br/>
+8、centos7 安装openvpn<br/>
+	yum install epel-release<br/>
+	yum install openvpn easy-rsa -y<br/>
+	
+	systemctl status openvpn@client.service<br/>
+	
+	systemctl enable openvpn@client.service
+	<br/>
+	systemctl start openvpn@client.service<br/>
+</pre>
+
+
+</body>
+</html>
