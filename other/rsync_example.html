@@ -1,0 +1,16 @@
+
+<html>
+<head>
+<title>rsync命令示例</title>
+</head>
+<body>
+<h1>rsync命令示例</h1>
+<pre>
+#把rsync密码设置到环境变量
+
+set RSYNC_PASSWORD=password
+
+d:\\path-to-rsync-bin\\rsync.exe -urza  --append-verify  --port 873  /cygdrive/D/path-to-file/somefile.txt username@hostname::module//path-in-server/
+</pre>
+</body>
+</html>

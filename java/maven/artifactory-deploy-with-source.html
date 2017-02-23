@@ -1,0 +1,25 @@
+<html>
+<head>
+<title>artifactory deploy with source</title>
+</head>
+<body>
+<h1>artifactory deploy with source</h1>
+ref:
+http://forums.jfrog.org/How-to-deploy-a-source-file-td4944028.html 
+
+<br/>
+
+<pre>
+>From artifactory web UI it works great. 2 important points: 
+- add the classifier sources 
+- remove the check box generate pom 
+
+We have solved the issue but it was a little bit complicated. There are many steps to apply the solution:
+In the case of jain-sdp archive, here are the steps:
+1- Deploy jain-sdp sources artifact with classifier "sources" as it is shown in the screenshot.
+2- Manually upload jain-sdp.pom file with including the "sourceDirectory" tag:
+
+</pre>
+
+</body>
+</html>

@@ -1,0 +1,26 @@
+<html>
+<head>
+<title>目录加入.gitignore无效的解决方法</title>
+</head>
+<body>
+<pre>
+无效的原因是：对应的目录或者文件已经被git跟踪，此时再加入.gitignore后就无效了，
+
+解决办法：
+
+先执行 git rm -r --cached dir
+
+再重新加入.gitignore文件
+
+解决方法来源：
+http://stackoverflow.com/questions/9550437/how-to-make-git-ignore-idea-files-created-by-rubymine
+
+</pre>
+</body>
+</html>
+
+
+
+
+
+

@@ -1,0 +1,13 @@
+<html>
+<head>
+<title>xfs文件碎片整理</title>
+</head>
+<body>
+<h1>xfs文件碎片整理</h1>
+<pre>
+[root@h6 /]# xfs_db -c frag -r /dev/mapper/centos-root
+actual 28250, ideal 27223, fragmentation factor 3.64%
+[root@h6 /]# xfs_fsr /dev/mapper/centos-root
+</pre>
+</body>
+</html>

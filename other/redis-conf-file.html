@@ -1,0 +1,292 @@
+<html>
+<head>
+<title>redis配置文件详解</title>
+</head>
+<body>
+<h1>redis配置文件详解</h1>
+ref:
+http://weipengfei.blog.51cto.com/1511707/1217504
+<br/>
+
+<pre>
+（基于Redis 2.6）
+基础部分设置：
+daemonize no
+#默认情况下redis 不是以守护进程的模式运行。
+
+pidfile /var/run/redis.pid
+#在守护进程模式下，pid进程号文件路径的存储位置
+
+port 6379
+#监听的端口号，设置为0的话，redis不会对tcp 连接进行监听；
+
+bind 127.0.0.1  
+#绑定本机单一网卡适配器，默认是本机的所有网络适配器
+
+unixsocket /tmp/redis.sock
+unixsocketperm 755  
+#默认情况下 redis 是不建立unix socket连接的；
+
+timeout 0
+#客户端空闲n秒后断开连接; 0 表示不主动断开连接；
+
+tcp-keepalive 0
+#在linux上，每个一段时间发送 SO_KEEPALIVE ACK的空包；推荐值为60s;
+这样做的两点理由：
+1、阻止由于某个command执行过长达到timeout超时时间而被断开连接；
+2、提高连接错误的检测
+（对于长期空闲的tcp连接很容易被NAT、防火墙等直接close掉。这情况下对于client和server在没IO操作下，都是没办感知的。另外，像Server程序或网络（硬件）突然Crash掉，也是同样的情况。）
+ 使用keepalive，内核会定时帮你发送一个空的ACK包，如果连接已断开或网络不可达，就会收到RST。
+
+loglevel notice
+#记录日志的级别：
+ debug：包含所有信息，主要用于开发环境中；
+ verbose：相比debug 只显示有用信息；
+ notice :生产环境推荐配置
+ warning ： 只记录重要、错误信息和严重信息；
+
+logfile stdout
+#日志文件记录位置， 如果采用daemonize 守护进程的模式，且参数值为stdout，那logs会被重定向到/dev/null
+
+syslog-enabled no
+#将日志信息记录到 syslog 文件中。默认不允许；
+syslog-facility local0  （必须是 LOCAL 0 -- LOCAL 7）
+作为syslog 的日志设备
+
+databases 16
+#数据库的数量， select dbid ； dbid  取值范围between 0 and 'databases'-1
+
+RDB快照部分:（将内存中的数据刷写到磁盘上）
+
+save <seconds>  <changes>
+save 900 1
+save 300 10
+save 60 10000
+# 符合以上条件的就刷新磁盘上:
+900秒（15分钟）之后，且至少1次变更
+300秒（5分钟）之后，且至少10次变更
+60秒之后，且至少10000次变更 
+（我一直怀疑数据会丢失多少？丢失几秒的？)
+不刷写到磁盘上的话，直接 save "" 就可以。
+
+stop-writes-on-bgsave-error yes
+#默认情况下，如果在RDB snapshots持久化过程中出现问题，设置该参数后，Redis是不允许用户
+进行任何更新操作(set...)。避免人为强制停止redis 快照，如果采用良好的监控系统，那么可以将该参数设置为 no
+可能出现的错误信息：MISCONF Redis is configured to save RDB snapshots, but is currently not able to persist on disk. Commands that may modify the data set are disabled. Please check Redis logs for details about the error.
+
+rdbcompression yes  
+#在导出.RDB数据库文件的时候采用LZF压缩字符串和对象。想节省一些CPU资源可以设置为no，但数据量可能会很大。
+
+rdbchecksum yes
+#RDB快照制作过程中会在文件的末尾写入 crc64的校验值。这样可能很好的保证数据的正确性。
+代价是在 saving 或者 loading RDB file 的时候，性能下降10%(待测试)；如果仅用该选项的话，
+文件末尾的校验值会用0代替，这样在loading data 的时候，会跳过check。
+
+dbfilename dump.rdb
+# 快照文件名
+
+dir ./ 
+#DB工作目录，必须是目录名，dumpfile存储的位置。
+
+复制部分：
+
+slaveof <masterip> <masterport>
+#只在slave添加该参数，用于创建一个镜像服务；
+
+masterauth <master-password>
+#如果master使用了requirepass参数，slave就要使用上述参数，进行密码验证。
+
+slave-serve-stale-data yes
+#当slave丢失与master端的连接，或者复制仍在处理，那么slave会有下列两种表现：
+ 当本参数值为yes时，slave为继续响应客户端请求，尽管数据已不同步甚至没有数据(出现在初次同步的情况下)；
+ 当本参数值为no时，slave会返回"SYNC with master in progreee"的错误信息；
+（这样就 屏蔽了读取数据过于陈旧的问题了吧？）
+
+slave-read-only yes
+# slave是可以写入的数据可以短暂存储，（会被master的数据同步掉）；read only slave 并不是
+暴漏给不信任的客户端，对于master 传过来的 administrative commands，可以用 rename-command 进行隐藏。
+
+repl-ping-slave-period 10 
+#slave根据指定的时间间隔向服务器发送ping请求，默认10s，个人的疑问：前面已经有了和“client” 进行沟通的tcp-keepalive
+什么还要加上 这个参数呢？ master 没有把slave 当做一个 client？
+
+repl-timeout 60 
+#设置了大块数据I/O、向master请求数据和ping响应的过期时间，默认60s，
+确保这个值比 repl-ping-slave-period 大，否则master和slave之间的传输过期时间比预想的要短。 
+
+repl-disable-tcp-nodelay no
+#默认为no，当选择yes的时候， master会向slave发送少量的tcp packets，（当然占用的带宽是很少的）
+这样的一个负面影响 delay slave接受数据时间，40 milliseconds 的延迟，在 高流量或者 master slave之间中间节点数很多的情况
+下，建议变为 yes
+
+slave-priority 100
+#该参数主要是在HA 方面的应用， 优先级越低，月可能成为master候选人（当master宕机的时候），Redis Sentinel 来决定哪个可以作为
+候选的 master， 如果该参数为0， 那么slave 就永远不会成为master。
+
+安全部分：
+
+#requirepass foobared
+详细请看：http://weipengfei.blog.51cto.com/1511707/1217872
+
+#rename-command 重命名或禁用某些命令
+在redis你可以禁用某些命令或者将命令重命名成难以猜测的名字，这样一般的用户就
+只能使用部分命令了。
+例如，虚拟服务器提供商提供管理redis实例的服务，这样的话，普通用户就不能调用CONFIG命令来修改配置了，但能新增，删除redis实例的系统必须能修改配置。
+可以重命名命令，也可以完全禁用该命令。Redis.conf文件支持这样的这样配置。例如：
+rename-command CONFIGb840fc02d524045429941cc15f59e41cb7be6c52
+在上面这个例子里，CONFIG命令重命名成一个毫无意义的名字。把命令重命名成空字符串即可将命令完全禁用，例如下面这个例子：rename-command CONFIG “
+
+Limits 部分
+maxclients 10000
+#最大并发连接数，默认为一万，这个跟系统本身的 open-file-limit 有关；超过这个限制后，会提示：max number of clients reached
+
+maxmemory <bytes>
+#最大使用内存；
+查看当前内存使用情况：
+redis 192.168.1.85:6379> info
+（或者：redis-cli info |grep memory）
+used_memory:  redis 数据占用的内存
+used_memory_human：
+used_memory_rss：redis占用的物理内存
+used_memory_peak：使用的物理内存峰值
+used_memory_peak_human：
+（当used_memory_rss　接近maxmemory　或者　used_memory_peak超过maxmemory时要加大maxmemory的值）
+不要用比设置的上限更多的内存。一旦内存使用达到上限，Redis会根据选定的回收策略删除key
+如果因为删除策略问题Redis无法删除key，或者策略设置为 "noeviction"，Redis会回复需要更多内存的错误信息给命令
+但是会继续合理响应只读命令，比如：GET。
+在使用Redis作为LRU缓存，或者为实例设置了硬性内存限制的时候（使用 "noeviction" 策略）的时候，这个选项还是满有用的。
+
+注意：当slave连接上一个达到内存上线的实例的时候，响应slave需要的输出缓存所需内存不计算在使用内存当中。当请求一个删除掉的key的时候就不会触发网络问题／重新同步的事件，然后slave就会收到一堆删除指令
+直到数据库空了为止。简而言之，如果你有slave连上一个master的话，确保有足够的系统内存用作输出缓存。
+
+maxmemory-policy  
+# 内存策略：如果达到内存限制了，Redis如何删除key。你可以在下面五个策略里面选
+volatile-lru -> 根据LRU算法生成的过期时间来删除。
+allkeys-lru -> 根据LRU算法删除任何key。
+volatile-random -> 根据过期设置来随机删除key。
+allkeys->random -> 无差别随机删。
+volatile-ttl -> 根据最近过期时间来删除（辅以TTL）
+noeviction -> 谁也不删，直接在写操作时返回错误。
+对所有策略来说，如果Redis找不到合适的可以删除的key都会在写操作时返回一个错误。
+
+maxmemory-samples 3
+#个人认为该参数主要用于测试达到内存最大的时候的，现象吧。
+LRU和最小TTL算法的实现都不是很精确，但是很接近（为了省内存），可以用样例做测试。
+例如：默认Redis会检查三个key然后取最旧的那个，该参数用来配置项来设置样本的个数。
+
+APPEND ONLY MODE  部分：
+
+redis 内存中的数据默认是异步同步到磁盘上的，如果发生宕机断电等情况，会造成几分钟数据的丢失。
+Append Only File也是数据持久化的一种方式，可以提供更好的数据可靠性，
+默认使用fsync() 刷写磁盘数据，发生断电，或者Redis出现内部错误的时候最多丢失1秒数据。
+AOF and RDB 这两种持久化方式可以同时开启不会发生冲突，开始AOF模式的话，Redis会把每次写入的数据在接收后都写入 appendonly.aof 文件。
+每次启动时Redis都会把这个文件的数据读入内存里。
+
+appendfilename appendonly.aof
+#append file 的文件名称
+
+appendfsync everysec
+#append log AOF日志文件同步的频率刷写磁盘的频率
+fsync() 请求操作系统马上把数据写到磁盘上
+Redis支持三种不同的模式：
+no：不要立刻刷，只有在操作系统需要刷的时候再刷。比较快。
+always：每次写操作都立刻写入到aof文件。慢，但是最安全。
+everysec：每秒写一次。折衷方案。
+默认的 "everysec" 通常来说能在速度和数据安全性之间取得比较好的平衡。
+
+no-appendfsync-on-rewrite no
+# 如果AOF的同步策略设置成 "always" 或者 "everysec"，那么后台的存储进程（后台存储或写入AOF日志）会产生很多磁盘I/O开销。
+某些Linux的配置下会使Redis因为 fsync() 而阻塞很久。
+目前对这个情况还没有完美修正，甚至不同线程的 fsync() 会阻塞我们的 write(2) 请求。
+为了缓解这个问题，可以用下面这个选项。它可以在 BGSAVE 或 BGREWRITEAOF 处理时阻止 fsync()。
+这就意味着如果有子进程在进行保存操作，那么Redis就处于"不可同步"的状态。
+这实际上是说，在最差的情况下可能会丢掉30秒钟的日志数据。（默认Linux设定）
+如果有延迟的问题那就把这个设为 "yes"，否则就保持 "no"，这是保存持久数据的最安全的方式。
+
+auto-aof-rewrite-percentage 100
+auto-aof-rewrite-min-size 64mb
+#AOF文件自动重写。
+如果AOF日志文件大到指定百分比，Redis能够通过 BGREWRITEAOF 自动重写AOF日志文件。
+工作原理：Redis记住上次重写时AOF日志的大小（或者重启后没有写操作的话，那就直接用此时的AOF文件），
+基准尺寸和当前尺寸做比较。如果当前尺寸超过指定比例，就会触发重写操作。
+你还需要指定被重写日志的最小尺寸，这样避免了达到约定百分比但尺寸仍然很小的情况还要重写。
+指定百分比为0会禁用AOF自动重写特性。（不是很明白它的作用）
+
+LUA_SCRIPT lua脚本的支持；
+
+lua-time-limit 5000（毫秒单位）
+lua 脚本执行时间限制
+如果lua脚本执行时间超过了最大限制时间，那redis会将其记录到日志中，
+当一个脚本运行时间超过了最大执行时间
+只有SCRIPT KILL和 SHUTDOWN NOSAVE两个命令可以使用。
+SCRIPT KILL用于停止没有调用写命令的脚本。
+SHUTDOWN NOSAVE是唯一的一个，在脚本的写命令正在执行用户又不想等待脚本的正常结束的情况下，关闭服务器的方法；
+设置为0或负数就会取消脚本执行时间限制；
+
+SLOW LOG 部分：
+
+#Redis慢查询日志可以记录超过指定时间的查询。运行时间不包括各种I/O时间。
+例如：连接客户端，发送响应数据等。只计算命令运行的实际时间（这是唯一一种命令运行线程阻塞而无法同时为其他请求服务的场景
+slowlog-log-slower-than 10000（单位微秒）
+#慢查询日志长度，这个长度没有限制。只要有足够的内存就行可以通过 SLOWLOG RESET 来释放内存(当一个新的命令被写进日志的时候，最老的那个记录会被删掉。)。
+slowlog-max-len 128
+（ps:日志居然是在内存里面的，）
+
+对于虚拟内存的使用，
+### 警告！虚拟内存在Redis 2.4是反对的。
+### 非常不鼓励使用虚拟内存！！
+在2.6中 根本没有其相关配置，
+
+高级配置部分：
+
+hash-max-ziplist-entries 512
+hash-max-ziplist-value 64
+#当有大量数据时，适合用哈希编码（需要更多的内存），元素数量上限不能超过给定限制。
+
+list-max-ziplist-entries 512
+list-max-ziplist-value 64
+#与哈希相类似，list数据元素较少的情况下，可以用另一种方式来编码从而节省大量空间。
+
+set-max-intset-entries 512
+#set 编码形式为是64位无符号整型数字构成的字符串。
+该参数来限制这种情况下使用这种编码的最大上限的。
+
+有序序列也可以用一种特别的编码方式来处理，可节省大量空间。
+# 这种编码只适合长度和元素都符合下面限制的有序序列：
+zset-max-ziplist-entries 128
+zset-max-ziplist-value 64
+
+activerehashing yes
+#哈希刷新，每100个CPU毫秒会拿出1个毫秒来刷新Redis的主哈希表（顶级键值映射表）。
+redis所用的哈希表实现（见dict.c）采用延迟哈希刷新机制：你对一个哈希表操作越多，哈希刷新操作就越频繁；
+反之，如果服务器非常不活跃那么也就是用点内存保存哈希表而已。
+默认是每秒钟进行10次哈希表刷新，用来刷新字典，然后尽快释放内存。
+建议：
+如果你对延迟比较在意的话就用 "activerehashing no"，每个请求延迟2毫秒不太好嘛。
+如果你不太在意延迟而希望尽快释放内存的话就设置 "activerehashing yes"。
+
+client-output-buffer-limit normal 0 0 0
+client-output-buffer-limit slave 256mb 64mb 60
+client-output-buffer-limit pubsub 32mb 8mb 60
+
+Redis 的output buffer限制 用来强行断开那么些读取速度比较慢的客户端（比如发布订阅模式，订阅者不能像发布者发布消息那样很快的接受到订阅信息），
+3种不同的客户端：
+normal -> normal clients
+slave  -> slave clients and MONITOR clients
+pubsub -> 客户端至少订阅了一个频道或者模式
+基本语法为：
+client-output-buffer-limit <class> <hard limit> <soft limit> <soft seconds>
+当达到hard limit 限制的时候，server立即断开连接，或者当达到soft limit限制后，持续时间达到 soft seconds 。
+把参数都变为0，就不会有限制。
+
+hz 10
+#Redis 调用内部函数来执行后台task，比如关闭已经timeout连接，删除过期的keys并且永远不会被访问到的，
+执行频率根据 hz 后面的值来确定。在Redis 比较空闲的时候，提高这个值，能充分利用CPU，让Redis相应速度更快，
+可取范围是1-500 ，建议值为 1--100
+
+aof-rewrite-incremental-fsync yes
+当子进程重写AOF文件，以下选项开启时，AOF文件会每产生32M数据同步一次。
+# 这有助于更快写入文件到磁盘避免延迟
+</pre>
+</body>
+</html>

@@ -1,0 +1,16 @@
+<html>
+<head>
+<title>利用wmic命令查询CPU利用率</title>
+</head>
+<body>
+<h1>利用wmic命令查询CPU利用率</h1>
+<pre>
+wmic path Win32_PerfFormattedData_PerfProc_Process  
+where "PercentProcessorTime>0" get /format:csv
+
+ref:
+http://stackoverflow.com/questions/206805/tasklist-cpu-usage
+</pre>
+</body>
+</html>
+
