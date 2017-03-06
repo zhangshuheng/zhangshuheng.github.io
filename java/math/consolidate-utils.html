@@ -1,0 +1,85 @@
+<html>
+<head>
+<title>标准差,标准分计算的Utility.</title>
+</head>
+<body>
+标准差,标准分计算的Utility.
+<pre>
+/*
+ * $Id$
+ * Copyright (c) 2008-2010 ... Co. Ltd.
+ * All Rights Reserved
+ * Changelog:
+ *   Li Guoliang - Jan 27, 2010: Initial version
+ *
+ */
+
+package com...mgt;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * 考试成绩整合有关Utils
+ * @author Li Guoliang
+ *
+ */
+public class AssessConsolidateUtils {
+
+	/**
+	 * 为给定的分数列表计算对应的标准分, 返回对应的标准分列表.
+	 * @param rawScores 原始分列表
+	 * @return [平均分, 方差, 原始分对应的标准分列表(顺序同原始分列表)]
+	 */
+	public static Object[] calculateStandardScore(List rawScores) {
+		List listStandardScore = new ArrayList();
+
+		double scoreMean = calculateScoreMean(rawScores); // 1. 获得平均分
+		// 2. 计算标准差
+		double standardDeviation = calculateSTD(rawScores, scoreMean);
+
+		for (int i = 0; i < rawScores.size(); i++) {
+			double standardScore = (rawScores.get(i) - scoreMean)/standardDeviation;
+			listStandardScore.add(i, standardScore); // 将标准分按顺序放入列表中.
+		}
+
+		Object[] consolidateValues = new Object[3];
+		consolidateValues[0] = scoreMean;
+		consolidateValues[1] = standardDeviation;
+		consolidateValues[2] = listStandardScore;
+
+		return consolidateValues;
+	}
+
+	/**
+	 * 获得平均分.
+	 * @param rawScores
+	 * @return
+	 */
+	protected static double calculateScoreMean(List rawScores) {
+		double scoreAll = 0.0;
+		for (Double score : rawScores) {
+			scoreAll += score;
+		}
+		return scoreAll/rawScores.size();
+	}
+
+	/**
+	 * 计算标准差
+	 * @param rawScores
+	 * @param scoreMean
+	 * @return
+	 */
+	protected static double calculateSTD(List rawScores, double scoreMean) {
+		double allSquare = 0.0;
+		for (Double rawScore : rawScores) {
+			allSquare += (rawScore - scoreMean)*(rawScore - scoreMean);
+		}
+		// (xi - x(平均分)的平方 的和计算完毕
+		double denominator = rawScores.size() * (rawScores.size() - 1);
+		return Math.sqrt(allSquare/denominator);
+	}
+}
+</pre>
+</body>
+</html>
