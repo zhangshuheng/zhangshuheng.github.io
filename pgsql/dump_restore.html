@@ -1,0 +1,24 @@
+
+<html>
+<head>
+<title>postgresql备份与恢复</title>
+</head>
+<body>
+You should use the --no-owner option, this stops pg_restore trying to set the ownership of the objects to the original owner. Instead the objects will be owned by the user specified by --role
+pg_restore -p 5433 --no-owner --role=owner2 -d db_name db_name.dump
+<pre>
+#!/bin/sh
+CUR_DATE=`date +%Y%m%d%H%M%S`
+#echo $CUR_DATE
+BACKUP_FILE="/opt/pgsql/backup/dbname$CUR_DATE.backup"
+cd /opt/pgsql 
+su  postgres -c  "bin/pg_dump -h localhost -p 6432  -F c -b -v -f $BACKUP_FILE dbname"
+#sudo -u postgres  bin/pg_dump -h localhost -p 6432  -F c -b -v -f $BACKUP_FILE dbname
+
+
+# pg_restore -h 127.0.0.1 -p 6432 -W -d gongdan -v $BACKUP_FILE
+# 改变所属用户
+# pg_restore -h 127.0.0.1 -p 6432  --no-owner --role=gd_cloud  -W -d gongdan -v $BACKUP_FILE
+</pre>
+</body>
+</html>
