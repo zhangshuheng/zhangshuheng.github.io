@@ -16,7 +16,7 @@ su  postgres -c  "bin/pg_dump -h localhost -p 6432  -F c -b -v -f $BACKUP_FILE d
 #sudo -u postgres  bin/pg_dump -h localhost -p 6432  -F c -b -v -f $BACKUP_FILE dbname
 
 
-# pg_restore -h 127.0.0.1 -p 6432 -W -d gongdan -v $BACKUP_FILE
+# pg_restore -h 127.0.0.1 -p 6432 -W -d dbname -v $BACKUP_FILE
 # 改变所属用户
 # pg_restore -h 127.0.0.1 -p 6432  --no-owner --role=role  -W -d dbname -v $BACKUP_FILE
 </pre>
