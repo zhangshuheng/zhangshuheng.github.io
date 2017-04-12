@@ -1,0 +1,15 @@
+<html>
+<head>
+<title>create index without locking table</title>
+</head>
+<body>
+
+<pre>
+
+CREATE INDEX concurrently indexname
+   ON tablename (column ASC NULLS LAST);
+</pre>
+
+注：该语句不支持事务
+</body>
+</html>
