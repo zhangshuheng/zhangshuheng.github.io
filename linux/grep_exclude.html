@@ -1,0 +1,33 @@
+<html>
+<head>
+<title>在linux系统如何grep过滤中，不包含某些字符串的命令</title>
+</head>
+<body>
+文章系转载，亲测可用（转载自：http://www.itokit.com/2014/0105/75018.html）<br/><br/><br/>
+<pre>
+
+grep命令应该是我们在获取字符串内容时，或读取文件时，进行分析的好命令，但是有时候针对一些字符，我们想排除掉某些字符。怎么办呢？
+<br/>
+-v 参数就可以很好的实现，比如我想查看apaceh日志中，非图片的浏览记录。可以使用以下命令：<br/>
+tail -f /usr/loca/apache/logs/access.log |grep -v '.jpg'<br/>
+这条命令就可以针对apaceh的用户访问记录中，排除掉.jpg图片的浏览日志记录，这样可以针对我们更好的分析日志了。<br/>
+当然你可以再加<br/>
+|grep -v '.png' 这样又可以排除.png格式的图片访问的了。可以不断累加的。非常方便。<br/>
+
+<br/><br/>
+另：<br/>
+附grep使用说明：<br/>
+grep常用用法<br/>
+[root@www ~]# grep [-acinv] [--color=auto] '搜寻字符串' filename<br/>
+选项与参数：<br/>
+-a ：将 binary 文件以 text 文件的方式搜寻数据<br/>
+-c ：计算找到 '搜寻字符串' 的次数<br/>
+-i ：忽略大小写的不同，所以大小写视为相同<br/>
+-n ：顺便输出行号<br/>
+-v ：反向选择，亦即显示出没有 '搜寻字符串' 内容的那一行！<br/>
+--color=auto ：可以将找到的关键词部分加上颜色的显示喔！<br/>
+</pre>
+</body>
+</html>
+
+
