@@ -1,0 +1,79 @@
+
+
+https://docs.bitnami.com/kubernetes/get-started-kubernetes/
+
+1、install minikube
+	#https://github.com/kubernetes/minikube/releases
+	curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.20.0/minikube-linux-amd64 && chmod +x minikube && sudo mv minikube /usr/local/bin/
+2、install kvm 
+  #https://github.com/dhiltgen/docker-machine-kvm/releases
+  
+  curl -L https://github.com/dhiltgen/docker-machine-kvm/releases/download/v0.10.0/docker-machine-driver-kvm-ubuntu16.04 > /usr/local/bin/docker-machine-driver-kvm \ 
+  chmod +x /usr/local/bin/docker-machine-driver-kvm
+  
+  #https://github.com/kubernetes/minikube/blob/master/docs/drivers.md#kvm-driver
+  sudo apt install libvirt-bin qemu-kvm
+  sudo usermod -a -G libvirtd $(whoami)
+  newgrp libvirtd
+  
+3、start 
+#https://github.com/kubernetes/minikube/issues/828
+#kvm network 'default' is not active
+virsh net-autostart default
+virsh net-start default
+
+4、常用命令
+minikube start --vm-driver=kvm
+kubectl get pods
+kubectl describe pods test 
+kubectl get pod --all-namespaces
+kubectl delete pods xxxx
+kubectl get services
+minikube stop
+minikube delete
+
+#kubectl exec test-redis-v1-1974481625-02nl2  -it bash --namespace kube-system
+
+
+5、gcr.io无法访问的解决方法，来源链接：http://www.jianshu.com/p/a42eeb66a19c
+
+minikube ssh
+docker pull registry.cn-hangzhou.aliyuncs.com/google-containers/kube-addon-manager-amd64:v6.1
+docker tag registry.cn-hangzhou.aliyuncs.com/google-containers/kube-addon-manager-amd64:v6.1 gcr.io/google-containers/kube-addon-manager:v6.1
+
+docker pull registry.cn-hangzhou.aliyuncs.com/google-containers/kubedns-amd64:1.9
+docker tag registry.cn-hangzhou.aliyuncs.com/google-containers/kubedns-amd64:1.9 gcr.io/google_containers/kubedns-amd64:1.9
+
+docker pull registry.cn-hangzhou.aliyuncs.com/google-containers/kube-dnsmasq-amd64:1.4
+docker tag registry.cn-hangzhou.aliyuncs.com/google-containers/kube-dnsmasq-amd64:1.4 gcr.io/google_containers/kube-dnsmasq-amd64:1.4
+
+docker pull registry.cn-hangzhou.aliyuncs.com/google-containers/exechealthz-amd64:1.2
+docker tag registry.cn-hangzhou.aliyuncs.com/google-containers/exechealthz-amd64:1.2 gcr.io/google_containers/exechealthz-amd64:1.2
+
+kubectl describe --namespace=kube-system po kubernetes-dashboard-k6z7w
+docker pull registry.cn-hangzhou.aliyuncs.com/google-containers/kubernetes-dashboard-amd64:v1.5.0
+docker tag registry.cn-hangzhou.aliyuncs.com/google-containers/kubernetes-dashboard-amd64:v1.5.0 gcr.io/google_containers/kubernetes-dashboard-amd64:v1.5.1
+
+6、docker pull proxy set
+# cat /etc/systemd/system/docker.service.d/http-proxy.conf
+[Service]
+Environment="HTTP_PROXY=https://ip:port/"
+Environment="HTTPS_PROXY=https://ip:port/"
+Environment="NO_PROXY=localhost,127.0.0.1,localaddress,.localdomain.com"
+
+Flush changes:
+systemctl daemon-reload
+
+Restart Docker:
+systemctl restart docker
+
+
+7、 secrets "registry-creds-gcr" not found
+$minikube addons configure registry-creds
+$minikube addons enable registry-creds
+
+8、启动kubectl proxy,浏览器访问:http://ip:8001/ui
+kubectl proxy --address 0.0.0.0 --accept-hosts '.*'
+
+9、Kubernetes 有状态集群服务部署与管理
+http://dockone.io/article/2016
