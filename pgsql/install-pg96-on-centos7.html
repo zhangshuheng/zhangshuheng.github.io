@@ -10,6 +10,10 @@ bin/initdb -D /opt/postgresql96/data/<br/><br/>
 #手动启动<br/>
 bin/pg_ctl -D /opt/postgresql96/data/ -l logfile start<br/>
 <br/>
+#加入系统自启动
+systemctl enable postgresql-9.6.service
+<br/>
+
 #修改/usr/lib/systemd/system/postgresql-9.6.service<br/>
 # Location of database directory<br/>
 Environment=PGDATA=/opt/postgresql96/data/<br/>
