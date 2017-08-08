@@ -1,0 +1,32 @@
+
+<html>
+<head>
+<title>install-and-configure-redis-on-centos-7</title>
+</head>
+<body>
+<pre>
+ yum update<br/>
+ yum install epel-release<br/>
+ yum update<br/>
+ yum install redis<br/>
+ systemctl start redis<br/>
+ systemctl enable redis<br/>
+ Verify the Installation<br/>
+ redis-cli ping<br/><br/>
+ 
+ Make sure that the following values are set for the appendonly and appendfsync settings in redis.conf:
+ appendonly yes<br/>
+ appendfsync everysec<br/>
+ 
+ To improve Redis performance, set the Linux kernel overcommit memory setting to 1:<br/>
+ sysctl vm.overcommit_memory=1<br/>
+ This immediately changes the overcommit memory setting, but the change will not persist across reboots. To make it permanent, add vm.overcommit_memory = 1 to /etc/sysctl.conf:<br/>
+ vm.overcommit_memory = 1<br/><br/><br/>
+
+vi /etc/rc.local<br/><br/>
+echo never > /sys/kernel/mm/transparent_hugepage/enabled<br/>
+echo 511 > /proc/sys/net/core/somaxconn<br/>
+ 
+</pre>
+</body>
+</html>
