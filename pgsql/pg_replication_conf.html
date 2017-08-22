@@ -1,0 +1,46 @@
+<html>
+<head>
+<title>Multi-Node PostgreSQL Cluster</title>
+</head>
+<body>
+<pre>
+主服务器创建用户:
+	CREATE USER replicator REPLICATION LOGIN ENCRYPTED PASSWORD 'repluserpass';
+创建archive目录
+	
+主配置:postgresql.conf
+	listen_addresses = '*'
+	wal_level = hot_standby
+	archive_mode = on
+	archive_command = 'cp %p /opt/pgsql/archive/%f'
+	max_wal_senders = 3
+	wal_keep_segments = 100
+	hot_standby = on
+	
+主配置:pg_hba.conf
+	host    replication      replicator      all                     md5
+
+从服务器:
+	1、删除数据目录
+	2、创建archive目录
+	3、执行 bin/pg_basebackup -D /opt/pgsql/data -l `date +"%m-%d-%y"`_initial_cloning -P -h masterip -p 5432 -U replicator -W -X stream
+	4、删除数据目录下的pg_xlog
+	5、数据目录下创建recovery.conf
+		standby_mode = 'on'
+		primary_conninfo = 'host=masterip port=5432 user=replicator password=repluserpass application_name=`hostname`'
+		restore_command = 'cp /opt/pgsql/archive/%f "%p"'
+	6、启动数据库
+
+切换：
+	1、从服务器 	recovery.conf 移动到根目录
+	2、修改从服务器 	postgresql.conf
+		wal_level = minimal
+		#archive_mode = on
+		#archive_command = 'cp %p /opt/pgsql/archive/%f'
+		#max_wal_senders = 3
+		#wal_keep_segments = 100
+		#hot_standby = on
+	3、重启
+</pre>
+</body>
+</html>
