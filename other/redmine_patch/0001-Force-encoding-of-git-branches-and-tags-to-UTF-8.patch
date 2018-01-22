@@ -1,0 +1,37 @@
+From 98fa703a69dbc1744af99bb77c0832b8c9c89a1d Mon Sep 17 00:00:00 2001
+From: Holger Just <holger@plan.io>
+Date: Tue, 3 Nov 2015 19:13:20 +0100
+Subject: [PATCH] Force encoding of git branches and tags to UTF-8
+
+---
+ lib/redmine/scm/adapters/git_adapter.rb | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/lib/redmine/scm/adapters/git_adapter.rb b/lib/redmine/scm/adapters/git_adapter.rb
+index 7395bc2..b0f4d18 100644
+--- a/lib/redmine/scm/adapters/git_adapter.rb
++++ b/lib/redmine/scm/adapters/git_adapter.rb
+@@ -86,6 +86,7 @@ module Redmine
+               bran.revision =  branch_rev[3]
+               bran.scmid    =  branch_rev[3]
+               bran.is_default = ( branch_rev[1] == '*' )
++              bran.force_encoding("UTF-8") if bran.respond_to?(:force_encoding)
+               @branches << bran
+             end
+           end
+@@ -99,7 +100,11 @@ module Redmine
+           @tags = []
+           cmd_args = %w|tag|
+           git_cmd(cmd_args) do |io|
+-            @tags = io.readlines.sort!.map{|t| t.strip}
++            @tags = io.readlines.sort!.map do |tag|
++              tag = tag.strip
++              tag.force_encoding("UTF-8") if tag.respond_to?(:force_encoding)
++              tag
++            end
+           end
+           @tags
+         rescue ScmCommandAborted
+-- 
+2.6.2
+
