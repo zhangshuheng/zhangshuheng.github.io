@@ -1,0 +1,26 @@
+
+
+qemu-img create -f qcow2 -o size=4G /images/img.qcow2
+http://bart.vanhauwaert.org/hints/installing-win10-on-KVM.html
+
+virt-install --connect qemu:///system -n win2012 --vcpus=2 -r 2048 \
+--disk path=/opt/openstack_win_img/win2012.qcow2,format=qcow2,size=20,bus=virtio,cache=none \
+--disk path=/opt/openstack_win_img/cn_windows_server_2012_r2_with_update_x64_dvd_6052725.iso,device=cdrom,bus=ide \
+--vnc --vncport=5909 --vnclisten=0.0.0.0  \
+--os-type windows --os-variant=win2k12 --accelerate --network=bridge:br0,model=virtio \
+--disk path=/opt/openstack_win_img/virtio-win.iso,device=cdrom,bus=ide --check all=off
+
+win2012安装密钥
+NB4WH-BBBYV-3MPPC-9RCMV-46XCB
+
+glance image-create --name="Windows 2012 R2"  --disk-format=qcow2 --container-format=bare --file /opt/  --visibility=public --progress
+
+如果要扩充 cinder-volumes的容量，可以借用loop 设备
+
+# dd if=/dev/zero of=/var/lib/cinder/cinder-volumes1 bs=1k count=500000000  #500G
+# losetup -f  (查找一个没有使用的loop device，笔者这里使用/dev/oop2）  
+# losetup /dev/loop2 /var/lib/cinder/cinder-volumes1  
+# pvcreate /dev/loop2
+# vgextend cinder-volumes /dev/loop2  
+
+cinder-volume的path : /dev/mapper/cinder-volume-pool
